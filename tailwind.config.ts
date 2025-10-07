@@ -59,6 +59,10 @@ export default {
           mid: "hsl(var(--gradient-mid))",
           end: "hsl(var(--gradient-end))",
         },
+        glass: {
+          bg: "hsl(var(--glass-bg))",
+          border: "hsl(var(--glass-border))",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",
