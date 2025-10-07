@@ -8,9 +8,7 @@ interface TimelineChartProps {
 const TimelineChart = ({ data }: TimelineChartProps) => {
   const formattedData = data.map((point) => ({
     ...point,
-    displayMonth: new Date(point.month).toLocaleDateString("en-US", {
-      month: "short",
-    }).toUpperCase(),
+    displayMonth: new Date(point.month).getFullYear().toString(),
   }));
 
   return (
