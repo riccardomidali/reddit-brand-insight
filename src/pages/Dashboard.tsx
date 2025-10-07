@@ -118,7 +118,7 @@ const Dashboard = () => {
                 Brand Mentions Timeline
               </CardTitle>
               <CardDescription>
-                Reddit mentions over the past 12 months
+                Reddit mentions from first appearance to present
               </CardDescription>
             </CardHeader>
             <CardContent>
