@@ -44,6 +44,7 @@ const TimelineChart = ({ data }: TimelineChartProps) => {
               borderRadius: "8px",
             }}
             labelStyle={{ color: "hsl(var(--foreground))" }}
+            labelFormatter={(label) => label || "Date"}
             formatter={(value: number, name: string) => {
               if (name === "mentions") return [value, "Mentions"];
               if (name === "avgSentiment") return [(value * 100).toFixed(1) + "%", "Avg Sentiment"];
