@@ -43,9 +43,12 @@ const Explore = () => {
         throw new Error(detail);
       }
 
-      const items = payload && typeof payload === "object" && Array.isArray((payload as Record<string, unknown>).suggestions)
-        ? (payload as Record<string, unknown>).suggestions
-        : [];
+      const items: unknown[] =
+        payload &&
+        typeof payload === "object" &&
+        Array.isArray((payload as Record<string, unknown>).suggestions)
+          ? ((payload as Record<string, unknown>).suggestions as unknown[])
+          : [];
 
       const normalized = items
         .filter((item): item is Suggestion => {
@@ -87,7 +90,7 @@ const Explore = () => {
             <span className="gradient-text">BrandPulse</span>
           </h1>
           <p className="text-muted-foreground text-lg">
-            AI-powered brand sentiment analysis from Reddit
+            Brand sentiment analysis from Reddit
           </p>
         </div>
 
