@@ -1,15 +1,40 @@
-import { TimelinePoint } from "@/types/dashboard";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
 interface TimelineChartProps {
-  data: TimelinePoint[];
+  data: Array<{ month: string; mentions: number }>;
 }
 
 const TimelineChart = ({ data }: TimelineChartProps) => {
-  const formattedData = data.map((point) => ({
-    ...point,
-    displayMonth: new Date(point.month).getFullYear().toString(),
-  }));
+  const formatXAxisLabel = (monthValue: string) => {
+    const date = new Date(monthValue);
+    if (!Number.isNaN(date.getTime())) {
+      const hasMonthPrecision = /^\d{4}-\d{2}(-\d{2})?$/.test(monthValue);
+      return hasMonthPrecision
+        ? date.toLocaleDateString(undefined, { month: "short", year: "2-digit" })
+        : date.getFullYear().toString();
+    }
+    return monthValue;
+  };
+
+  const formatTooltipLabel = (monthValue: string) => {
+    const date = new Date(monthValue);
+    if (!Number.isNaN(date.getTime())) {
+      const hasMonthPrecision = /^\d{4}-\d{2}(-\d{2})?$/.test(monthValue);
+      return hasMonthPrecision
+        ? date.toLocaleDateString(undefined, { month: "long", year: "numeric" })
+        : date.getFullYear().toString();
+    }
+    return monthValue;
+  };
+
+  const safeData = Array.isArray(data) ? data : [];
+  const formattedData = safeData
+    .filter((point) => typeof point?.month === "string" && Number.isFinite(point?.mentions))
+    .map((point) => ({
+      ...point,
+      displayMonth: formatXAxisLabel(point.month),
+      tooltipLabel: formatTooltipLabel(point.month),
+    }));
 
   return (
     <div className="w-full h-[300px]">
@@ -28,6 +53,7 @@ const TimelineChart = ({ data }: TimelineChartProps) => {
             stroke="hsl(var(--muted-foreground))"
             fontSize={12}
             tickLine={false}
+            minTickGap={18}
           />
           <YAxis
             stroke="hsl(var(--muted-foreground))"
@@ -42,10 +68,15 @@ const TimelineChart = ({ data }: TimelineChartProps) => {
               borderRadius: "8px",
             }}
             labelStyle={{ color: "hsl(var(--foreground))" }}
-            labelFormatter={(label) => label || "Date"}
+            labelFormatter={(_, payload) => {
+              if (Array.isArray(payload) && payload[0] && "payload" in payload[0]) {
+                const row = payload[0].payload as { tooltipLabel?: string };
+                return row.tooltipLabel || "Date";
+              }
+              return "Date";
+            }}
             formatter={(value: number, name: string) => {
               if (name === "mentions") return [value, "Mentions"];
-              if (name === "avgSentiment") return [(value * 100).toFixed(1) + "%", "Avg Sentiment"];
               return [value, name];
             }}
           />

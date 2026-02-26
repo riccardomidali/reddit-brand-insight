@@ -8,6 +8,7 @@ interface GaugeChartProps {
 
 const GaugeChart = ({ score, label, size = "md" }: GaugeChartProps) => {
   const [animatedScore, setAnimatedScore] = useState(0);
+  const safeScore = Number.isFinite(score) ? Math.max(0, Math.min(100, score)) : 0;
 
   const dimensions = {
     sm: { radius: 60, strokeWidth: 8, fontSize: "text-xl" },
@@ -16,17 +17,24 @@ const GaugeChart = ({ score, label, size = "md" }: GaugeChartProps) => {
   };
 
   const { radius, strokeWidth, fontSize } = dimensions[size];
-  const circumference = Math.PI * radius;
+  const arcLength = Math.PI * radius;
   const viewBox = radius + strokeWidth + 10;
+  const startX = viewBox - radius;
+  const endX = viewBox + radius;
+  const arcPath = `M ${startX} ${viewBox} A ${radius} ${radius} 0 0 1 ${endX} ${viewBox}`;
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      setAnimatedScore(score);
+      setAnimatedScore(safeScore);
     }, 100);
     return () => clearTimeout(timer);
-  }, [score]);
+  }, [safeScore]);
 
-  const offset = circumference - (animatedScore / 100) * circumference;
+  const normalizedAnimatedScore = Number.isFinite(animatedScore)
+    ? Math.max(0, Math.min(100, animatedScore))
+    : 0;
+  const progressLength = (normalizedAnimatedScore / 100) * arcLength;
+  const showScoreArc = normalizedAnimatedScore > 0.001;
 
   // Calculate gradient color based on score
   const getGradientId = () => `gradient-${label.replace(/\s+/g, "-")}`;
@@ -49,7 +57,7 @@ const GaugeChart = ({ score, label, size = "md" }: GaugeChartProps) => {
 
         {/* Background arc */}
         <path
-          d={`M ${strokeWidth + 5} ${viewBox} A ${radius} ${radius} 0 0 1 ${viewBox * 2 - strokeWidth - 5} ${viewBox}`}
+          d={arcPath}
           fill="none"
           stroke="hsl(var(--muted))"
           strokeWidth={strokeWidth}
@@ -57,18 +65,20 @@ const GaugeChart = ({ score, label, size = "md" }: GaugeChartProps) => {
         />
 
         {/* Animated score arc */}
-        <path
-          d={`M ${strokeWidth + 5} ${viewBox} A ${radius} ${radius} 0 0 1 ${viewBox * 2 - strokeWidth - 5} ${viewBox}`}
-          fill="none"
-          stroke={`url(#${getGradientId()})`}
-          strokeWidth={strokeWidth}
-          strokeLinecap="round"
-          strokeDasharray={circumference}
-          strokeDashoffset={offset}
-          style={{
-            transition: "stroke-dashoffset 1.5s ease-out",
-          }}
-        />
+        {showScoreArc ? (
+          <path
+            d={arcPath}
+            fill="none"
+            stroke={`url(#${getGradientId()})`}
+            strokeWidth={strokeWidth}
+            strokeLinecap="round"
+            strokeDasharray={`${progressLength} ${arcLength}`}
+            strokeDashoffset={0}
+            style={{
+              transition: "stroke-dasharray 1.5s ease-out",
+            }}
+          />
+        ) : null}
 
         {/* Score text */}
         <text
@@ -77,7 +87,7 @@ const GaugeChart = ({ score, label, size = "md" }: GaugeChartProps) => {
           textAnchor="middle"
           className={`${fontSize} font-bold fill-foreground`}
         >
-          {animatedScore.toFixed(1)}
+          {normalizedAnimatedScore.toFixed(1)}
         </text>
         <text
           x={viewBox}

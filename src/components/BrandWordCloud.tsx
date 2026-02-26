@@ -6,6 +6,10 @@ interface BrandWordCloudProps {
 }
 
 const BrandWordCloud = ({ words }: BrandWordCloudProps) => {
+  const safeWords = Array.isArray(words)
+    ? words.filter((word) => typeof word?.text === "string" && Number.isFinite(word?.value))
+    : [];
+
   const options = {
     rotations: 2,
     rotationAngles: [0, 90] as [number, number],
@@ -27,7 +31,7 @@ const BrandWordCloud = ({ words }: BrandWordCloudProps) => {
 
   return (
     <div className="w-full h-[300px] flex items-center justify-center">
-      <ReactWordcloud words={words} options={options} />
+      <ReactWordcloud words={safeWords} options={options} />
     </div>
   );
 };
